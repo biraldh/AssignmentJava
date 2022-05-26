@@ -24,7 +24,7 @@ public class Dashboard extends JFrame {
 		// inserting image
 		JLabel lblImage = new JLabel("");
 		lblImage.setBounds(0, 50, 1600, 610);
-		lblImage.setIcon(new ImageIcon("myhq-workspaces-Becc3eg9-l0-unsplash(1).jpg"));
+		lblImage.setIcon(new ImageIcon("dash.jpg"));
 		getContentPane();
 
 		// declare and initialize variables

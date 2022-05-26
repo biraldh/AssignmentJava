@@ -6,8 +6,11 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Random;
 
@@ -17,22 +20,28 @@ import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
+import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.table.DefaultTableModel;
 
 import com.toedter.calendar.JDateChooser;
 
 import ConLib.JDBC;
-import ConLib.LibServiceReq;
+import ConLib.MenuLibdata;
 import ConLib.ReqMenuLib;
+import ConLib.ServiceLibdata;
 
-public class MenuReq {
+public class MenuReq implements MouseListener  {
 	JFrame frame;
-
+	DefaultTableModel model;
+	JTable tablemenu;
+	int menuid;
 	public MenuReq() {
 
 		frame = new JFrame();
-		frame.setSize(1000, 600);
+		frame.setSize(1120, 600);
 		frame.setLocationRelativeTo(null);
 
 		JPanel north = new JPanel();
@@ -64,17 +73,7 @@ public class MenuReq {
 		s1.setBounds(0, 35, 500, 5);
 		west.add(s1);
 
-//		JLabel lblid = new JLabel("User ID");
-//		lblid.setFont(new Font("Times New Roman", Font.PLAIN, 16));
-//		lblid.setForeground(Color.BLACK);
-//		lblid.setBounds(40, 60, 100, 25);
-//		west.add(lblid);
-//
-//		JTextField txtid = new JTextField();
-//		txtid.setFont(new Font("Times New Roman", Font.PLAIN, 16));
-//		txtid.setForeground(Color.BLACK);
-//		txtid.setBounds(110, 60, 170, 25);
-//		west.add(txtid);
+
 
 		JLabel lblitem = new JLabel("Item");
 		lblitem.setFont(new Font("Times New Roman", Font.PLAIN, 16));
@@ -82,23 +81,13 @@ public class MenuReq {
 		lblitem.setBounds(40, 110, 100, 25);
 		west.add(lblitem);
 
-		JTextField txtitem = new JTextField();
+		String[] fooditem = { "Breakfast Buffet","Lunch Buffet","Dinner Buffet","Latte","Coffee","Cold Beverages"};
+		JComboBox txtitem = new JComboBox(fooditem);
 		txtitem.setFont(new Font("Times New Roman", Font.PLAIN, 16));
 		txtitem.setForeground(Color.BLACK);
 		txtitem.setBounds(110, 110, 170, 25);
 		west.add(txtitem);
 
-//		JLabel lblrate = new JLabel("Rate");
-//		lblrate.setFont(new Font("Times New Roman", Font.PLAIN, 16));
-//		lblrate.setForeground(Color.BLACK);
-//		lblrate.setBounds(40 , 160, 100, 25);
-//		west.add(lblrate);
-//		
-//		JTextField txtrate = new JTextField();
-//		txtrate.setFont(new Font("Times New Roman", Font.PLAIN, 16));
-//		txtrate.setForeground(Color.BLACK);
-//		txtrate.setBounds(110 , 160, 170, 25);
-//		west.add(txtrate);
 
 		JLabel lblquantity = new JLabel("Quantity");
 		lblquantity.setFont(new Font("Times New Roman", Font.PLAIN, 16));
@@ -118,25 +107,13 @@ public class MenuReq {
 		lbltype.setBounds(40, 210, 100, 25);
 		west.add(lbltype);
 
-		String type[] = { "Resturant", "Bar" };
+		String type[] = { "Restaurant", "Bar" };
 		JComboBox cmbtype = new JComboBox(type);
 		cmbtype.setFont(new Font("Times New Roman", Font.PLAIN, 16));
 		cmbtype.setBounds(110, 210, 170, 25);
 		cmbtype.setFocusable(false);
 		west.add(cmbtype);
 
-//		JLabel lblstatus = new JLabel("Status");
-//		lblstatus.setFont(new Font("Times New Roman", Font.PLAIN, 16));
-//		lblstatus.setForeground(Color.BLACK);
-//		lblstatus.setBounds(40 , 310, 100, 25);
-//		west.add(lblstatus);
-//		
-//		String status[] = {"confirmed","unconfirmed"};
-//		JComboBox cmbstatus = new JComboBox(status);
-//		cmbstatus.setFont(new Font("Times New Roman", Font.PLAIN, 16));
-//		cmbstatus.setBounds(110,310,170,25);
-//		cmbstatus.setFocusable(false);
-//		west.add(cmbstatus);
 
 		JLabel lbldate = new JLabel("Date");
 		lbldate.setFont(new Font("Times New Roman", Font.PLAIN, 16));
@@ -162,7 +139,7 @@ public class MenuReq {
 				int userid =  Global.loginCred.getId();
 				//int userid = Integer.parseInt(txtid.getText());
 				String  quantity = txtquantity.getText();
-				 String item = txtitem.getText();
+				 String item = txtitem.getSelectedItem().toString();
 				 String type= cmbtype.getSelectedItem().toString();
 				 String date = ((JTextField) caldate.getDateEditor().getUiComponent()).getText();
 				try {
@@ -192,10 +169,11 @@ public class MenuReq {
 		west.add(btnUpdate);
 		btnUpdate.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				//initialize and declare variables
 				int userid =  Global.loginCred.getId();
-				//int userid = Integer.parseInt(txtid.getText());
+				
 				String  quantity = txtquantity.getText();
-				 String item = txtitem.getText();
+				 String item = txtitem.getSelectedItem().toString();
 				 String type= cmbtype.getSelectedItem().toString();
 				 String date = ((JTextField) caldate.getDateEditor().getUiComponent()).getText();
 				try {
@@ -203,13 +181,11 @@ public class MenuReq {
 					} catch (ParseException e1) {
 
 					}				 				
-				  
+				  // sending data to middleware
 				 JDBC jdbc = new JDBC();
 				 ReqMenuLib lib1 = new ReqMenuLib();
 				 lib1.setUid(userid);
-				 lib1.setItem(item);
-				 boolean result = jdbc.menuId(lib1) != null;
-				 int menuid = lib1.getMenuid();
+				 lib1.setMenuid(menuid);
 				 System.out.println(menuid);
 				 
 				 
@@ -230,17 +206,13 @@ public class MenuReq {
 		west.add(btnDelete);
 		btnDelete.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ex) {
-				int userid =  Global.loginCred.getId();
-				//int userid = Integer.parseInt(txtid.getText());				
-				 String item = txtitem.getText();
-				 
+				int userid =  Global.loginCred.getId();	
+				//sending uid and menuid to middleware for deleting the data
 				 JDBC jdbc1 = new JDBC();
 				 ReqMenuLib lib1 = new  ReqMenuLib();
 				 lib1.setUid(userid);
-				 lib1.setItem(item);
-				 
-				 ReqMenuLib result = jdbc1.menuId(lib1);
-				 
+				 lib1.setMenuid(menuid);	 
+				 ReqMenuLib result = jdbc1.menuId(lib1);	 
 				 boolean result1 = jdbc1.deleteMenuinbook(lib1);
 				 boolean result2 = jdbc1.deleteMenu(lib1);
 				 
@@ -263,12 +235,50 @@ public class MenuReq {
 		CENTER.setBackground(new Color(50, 50, 50));
 		frame.getContentPane().add(CENTER, BorderLayout.CENTER);
 
-//		set image
-		JLabel lblImage = new JLabel("");
-		lblImage.setBounds(0, 50, 585, 400);
-		lblImage.setIcon(new ImageIcon("menu.jpg"));
-		frame.getContentPane();
-		CENTER.add(lblImage);
+		 model = new DefaultTableModel();
+		model.addColumn("Customer ID");
+		model.addColumn("Menu ID");
+		model.addColumn("Item");
+		model.addColumn("Menu Status");
+		model.addColumn("Quantity");
+		model.addColumn("Date");
+		
+		 tablemenu = new JTable(model);
+		tablemenu.addMouseListener(this);
+		
+		JButton btnsearch = new JButton("Refresh");
+		btnsearch.setBounds(20, 20, 100, 25);
+		btnsearch.setFocusable(false);
+		btnsearch.setBackground(new Color(106, 101, 101));
+		btnsearch.setFont(new Font("Times New Roman", Font.BOLD, 18));
+		btnsearch.setForeground(Color.white);
+		CENTER.add(btnsearch);
+		btnsearch.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ex) {
+				model.setRowCount(0);//deleting rows of the table
+				JDBC jdbc = new JDBC();				
+				int id = Global.loginCred.getId();
+				//sending uid to middleware and retriving data to be displayed in the table
+				MenuLibdata menu1 = new MenuLibdata();
+				menu1.setUid(id);									
+				ArrayList search = jdbc.menuview(menu1);
+				if (search.size() > 0) {
+					for (int i = 0; i < search.size(); i++) {
+						menu1 = (MenuLibdata) search.get(i);
+
+						Object[] tmp = { menu1.getUid(),menu1.getMenuid(),menu1.getItem(),menu1.getStatu(),menu1.getQuantity(),menu1.getDate() };
+						model.addRow(tmp);
+
+					}
+				}
+			}
+		});
+		
+
+	
+		JScrollPane sroll = new JScrollPane(tablemenu);
+		sroll.setBounds(20, 50, 670, 400);
+		CENTER.add(sroll);
 
 		frame.setVisible(true);
 		frame.setResizable(false);
@@ -280,4 +290,41 @@ public class MenuReq {
 
 	}
 
-}
+	@Override
+	public void mouseClicked(MouseEvent e) {
+		int rows =tablemenu.getSelectedRow();
+		 String menuID =model.getValueAt(rows, 1).toString();
+		menuid = Integer.parseInt(menuID);
+		System.out.println(menuid);
+		
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}}
+
+
+
+		
+	
+

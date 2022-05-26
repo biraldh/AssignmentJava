@@ -27,6 +27,7 @@ public class Login {
 	JFrame frame;
 
 	public Login() {
+		//Initialize and declare
 		frame = new JFrame();
 		frame.setSize(900, 550);
 		frame.setLocationRelativeTo(null);
@@ -86,7 +87,7 @@ public class Login {
 		txtPassword.setFont(new Font("Times New Roman", Font.PLAIN, 16));
 		txtPassword.setBounds(150, 190, 200, 30);
 		west.add(txtPassword);
-
+		
 		JButton logintbtn = new JButton("Login");
 		logintbtn.setBounds(30, 280, 100, 30);
 		logintbtn.setFocusable(false);
@@ -98,17 +99,22 @@ public class Login {
 		logintbtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ex) {
 				// creating new variable to store textfield text
+				
 				String uname = txtUserName.getText();
 				String pass = txtPassword.getText();
+				//  staff registration opens if condition fulfilled
 				if (uname.equals("admin") && pass.equals("zxcvbnm")) {
-					stafreg reg = new stafreg();
-					reg.frame1.setVisible(true);
+					JOptionPane.showMessageDialog(logintbtn, "admin login");
+					staffcreateaccount reg = new staffcreateaccount();
+					
+					reg.frame.setVisible(true);
 					frame.dispose();
+					
 
 				} else {
 
-					// condition for combobox
-					// if combbbox item customer or corp-customer
+				
+					// if combobox item customer or corp-customer
 					System.out.println("Not admin");
 					LoginLibs user = new LoginLibs();
 					user.setUsername(uname);
@@ -117,22 +123,20 @@ public class Login {
 					user = new JDBC().loginstaff(user);
 					if (user.getId() > 0) {
 
-						JOptionPane.showMessageDialog(null, "Welcome: " + user.getUsername());
+						JOptionPane.showMessageDialog(null, "Login Successful");
 
 						new Dashboard().setVisible(true);
 
-						// new Staffbook();
-						// new CustomerProf();
 
 					} else {
-						// LoginLibs user2 = new LoginLibs();
+						//login for customer
 						user.setUsername(uname);
 						user.setPassword(pass);
 						Global.loginCred = user;
 						user = new JDBC().loginCust(user);
 						if (user.getId() > 0) {
 							Global.loginCred = user;
-							JOptionPane.showMessageDialog(null, "Welcome: " + user.getUsername());
+							JOptionPane.showMessageDialog(null, "Login Successful");
 							new Dashboardcustomer().setVisible(true);
 							frame.dispose();
 						} else {
@@ -151,6 +155,7 @@ public class Login {
 		clearbtn.setForeground(Color.white);
 		clearbtn.setFocusable(false);
 		west.add(clearbtn);
+		//clears the textfield if there is values
 		clearbtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ex) {
 				txtUserName.setText(null);
@@ -188,6 +193,7 @@ public class Login {
 		west.add(backbtn);
 		backbtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ex) {
+				//open new class welcome page
 				WelcomePage reg = new WelcomePage();
 				reg.setVisible(true);
 				frame.dispose();

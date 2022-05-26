@@ -5,9 +5,12 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -17,12 +20,13 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 
 import ConLib.JDBC;
+import ConLib.LoginLibs;
 import ConLib.ReceiptLib;
 import ConLib.ReceiptLib2;
 
 public class billReceipt {
 	JFrame frame;
-
+	JButton payment;
 	public billReceipt() {
 
 		frame = new JFrame();
@@ -177,16 +181,16 @@ public class billReceipt {
 		ctotal.setBounds(510, 500, 80, 20);
 		center.add(ctotal);
 		
-		JLabel discount = new JLabel("Discount (10%)");
+		JLabel discount = new JLabel("(for corporate only)Discount (10%)");
 		discount.setFont(new Font("Times New Roman", Font.BOLD, 14));
 		discount.setForeground(Color.BLACK);
-		discount.setBounds(400, 470, 200, 20);
+		discount.setBounds(350, 470, 700, 20);
 		center.add(discount);
 
-		JLabel cdiscount = new JLabel("1000");
+		JLabel cdiscount = new JLabel("0.0");
 		cdiscount.setFont(new Font("Times New Roman", Font.BOLD, 14));
 		cdiscount.setForeground(Color.BLACK);
-		cdiscount.setBounds(510, 470, 80, 20);
+		cdiscount.setBounds(580, 470, 80, 20);
 		center.add(cdiscount);
 
 		DefaultTableModel model = new DefaultTableModel();
@@ -196,7 +200,7 @@ public class billReceipt {
 		model.addColumn("Total");
 
 		JTable table = new JTable(model);
-
+		//Retrieving data from middleware and setting it into the jtable
 		JDBC jdbc1 = new JDBC();
 		ReceiptLib2 billl = new ReceiptLib2();
 		int userid1 = Global.loginCred.getId();
@@ -236,13 +240,38 @@ public class billReceipt {
 	        {
 	        	
 	        	int sumdis = (int) (sum - dis);
+	        	int userid = Global.loginCred.getId();
+	        	LoginLibs user = new LoginLibs();
+	        	user.setId(userid);
+	        	user = new JDBC().billCust(user);
+	        	if(user.gettype().equals("Customer")) {
+	        		cvat.setText(Integer.toString(sum));
+	        		ctotal.setText(Integer.toString(sum));
+	        	}else {
 	        	cdiscount.setText(Float.toString(dis));	
-	        ctotal.setText(Integer.toString(sumdis));
-	        cvat.setText(Integer.toString(sum));
+	        	ctotal.setText(Integer.toString(sumdis));
+	        	}
 	    }
 
 		
-
+	    payment = new JButton("Pay");
+	    payment.setBounds(1,20,67,20);
+	    payment.setFocusable(false);
+	    payment.setBackground(new Color(106, 101, 101));
+	    payment.setFont(new Font("Times New Roman", Font.BOLD, 18));
+	    payment.setForeground(Color.white);
+	    payment.addActionListener(new ActionListener(){			
+			public void actionPerformed(ActionEvent e) {
+				int userid1 = Global.loginCred.getId();// value of uid from global class
+				JDBC jdbc = new JDBC();
+				ReceiptLib2 lib = new ReceiptLib2();
+				lib.setUid(userid1);//setting uid to ReceiptLib2
+				jdbc.invoicestatus(lib);//sending data to middleware
+				
+			}
+	    	
+	    });
+	        
 		JPanel totalpanel = new JPanel();
 		totalpanel.setBackground(new Color(255, 178, 102));
 		totalpanel.setBounds(490, 500, 80, 20);
@@ -253,12 +282,13 @@ public class billReceipt {
 		east.setLayout(null);
 		east.setBackground(new Color(255, 178, 102));
 		frame.getContentPane().add(east, BorderLayout.EAST);
-
+		
+		east.add(payment);
+		
 		frame.setVisible(true);
 
 		JDBC jdbc = new JDBC();
 		ReceiptLib lib = new ReceiptLib();
-		// int userid1 = Global.loginCred.getId();
 		lib.setUid(userid1);
 		jdbc.receiptdata(lib);
 		cbilldate.setText(lib.getBilldate());

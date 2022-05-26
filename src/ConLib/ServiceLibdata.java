@@ -3,6 +3,7 @@ package ConLib;
 public class ServiceLibdata {
 	int serviceId;
 	int uid;
+	String name;
 	String item;
 	String status;
 	String quantity;
@@ -17,10 +18,11 @@ public class ServiceLibdata {
 		this.date = "";
 	}
 
-	public ServiceLibdata(int serviceId, int uid, String item, String status, String quantity, String Date) {
+	public ServiceLibdata(int serviceId, int uid,String Name, String item, String status, String quantity, String Date) {
 
 		this.serviceId = serviceId;
 		this.uid = uid;
+		this.name = Name;
 		this.item = item;
 		this.status = status;
 		this.quantity = quantity;
@@ -41,6 +43,14 @@ public class ServiceLibdata {
 
 	public void setUid(int uid) {
 		this.uid = uid;
+	}
+	
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 
 	public String getItem() {

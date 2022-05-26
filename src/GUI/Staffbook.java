@@ -255,21 +255,23 @@ public class Staffbook extends JFrame {
 
 		DefaultTableModel model = new DefaultTableModel();
 		model.addColumn("Booking ID");
+		model.addColumn("Name");
 		model.addColumn("Customer ID");
 		model.addColumn("Checkin date");
 		model.addColumn("Checkout date");
 		model.addColumn("Booking Status");
 		model.addColumn("Room Preference");
+		model.addColumn("Room No");
 		JTable tableRoom = new JTable(model);
 		
-		btnSearch = new JButton("Search");
+		btnSearch = new JButton("Display");
 		btnSearch.setFont(new Font("Verdana", Font.BOLD, 12));
 		btnSearch.setBounds(20, 20, 100, 23);
 		btnSearch.setBackground(new Color(255, 255, 255));
 		btnSearch.setFocusable(false);
 		btnSearch.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ex) {
-
+				model.setRowCount(0);
 				JDBC jdbc = new JDBC();
 				BookDataLib book = new BookDataLib();
 				ArrayList search = jdbc.Bookdata(book);
@@ -277,7 +279,7 @@ public class Staffbook extends JFrame {
 					for (int i = 0; i < search.size(); i++) {
 						book = (BookDataLib) search.get(i);
 
-						Object[] tmp = { book.getBookid(),book.getUid(), book.getCheckin_date(), book.getCheckout_date(), book.getBooking_status(),book.getPreference()};
+						Object[] tmp = { book.getBookid(),book.getName(),book.getUid(), book.getCheckin_date(), book.getCheckout_date(), book.getBooking_status(),book.getPreference(),book.getRoomno()};
 						model.addRow(tmp);
 
 					}
@@ -285,20 +287,11 @@ public class Staffbook extends JFrame {
 			}
 		});
 
-		JLabel mes = new JLabel("All the rooms are displayed");
-		mes.setBounds(340, 470, 250, 23);
-		mes.setFont(new Font("Times New Roman", Font.BOLD, 18));
-		mes.setForeground(Color.black);
-		mes.setVisible(false);
-
-
-	
 		JScrollPane sroll = new JScrollPane(tableRoom);
 		sroll.setBounds(20, 50, 800, 400);
 		Center.add(sroll);
 
 		
-		Center.add(mes);
 		Center.add(btnSearch);
 		setVisible(true);
 	}

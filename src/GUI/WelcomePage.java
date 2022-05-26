@@ -31,8 +31,8 @@ public class WelcomePage extends JFrame implements ActionListener {
 
 		//inserting Image
 		JLabel lblImage = new JLabel(""); 
-		lblImage.setBounds(-10, 90, 1400, 545);
-		lblImage.setIcon(new ImageIcon("2690549.jpg"));
+		lblImage.setBounds(1, 90, 1700, 545);
+		lblImage.setIcon(new ImageIcon("welcomeimg.jpg"));
 		getContentPane();
 		
 		//declare and initializing

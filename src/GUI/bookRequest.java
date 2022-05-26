@@ -3,11 +3,14 @@ package GUI;
 import java.awt.BorderLayout; 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -36,21 +39,26 @@ import javax.swing.table.JTableHeader;
 
 import com.toedter.calendar.JDateChooser;
 
+import ConLib.BookDataLib;
 import ConLib.JDBC;
 import ConLib.libBook;
 import ConLib.libBookRequest;
 import ConLib.libRoom;
 
-public class bookRequest extends JFrame {
+public class bookRequest extends JFrame implements MouseListener {
 	JComboBox CoPreference;
 	JButton btnSearch;
-
+	DefaultTableModel model;
+	JTable tableRoom;
+	int bookid;
 	public bookRequest() {
 
 		setSize(1250, 650);
 		setLocationRelativeTo(null);
 		setLayout(new BorderLayout());
 
+		
+		
 		JPanel north = new JPanel();
 		north.setLayout(null);
 		north.setPreferredSize(new Dimension(1, 80));
@@ -95,20 +103,6 @@ public class bookRequest extends JFrame {
 		lbllink.setForeground(Color.WHITE);
 		lbllink.setBounds(160, 510, 200, 20);
 		west.add(lbllink);
-
-//		JLabel Customerlbl = new JLabel("Customer ID:");
-//		Customerlbl.setBounds(20, 120, 150, 30);
-//		Customerlbl.setFont(new Font("Times New Roman", Font.BOLD, 18));
-//		Customerlbl.setForeground(Color.white);
-//
-//		west.add(Customerlbl);
-//
-//		JLabel customertxt = new JLabel();
-//		customertxt.setBounds(200, 120, 200, 30);
-//		customertxt.setFont(new Font("Times New Roman", Font.BOLD, 18));
-//		//String id = Integer.toString(Global.loginCred.getId());
-//		//customertxt.setText(id);
-//		west.add(customertxt);
 
 
 		JLabel checkinlbl = new JLabel("Check-In:");
@@ -159,6 +153,8 @@ public class bookRequest extends JFrame {
 		west.add(insertbtn);
 		insertbtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ex) {
+				
+				//Initialize and declare variables
 				String checkin = ((JTextField) c1.getDateEditor().getUiComponent()).getText();
 
 				try {
@@ -177,7 +173,7 @@ public class bookRequest extends JFrame {
 				//int CustId = Integer.parseInt(customertxt.getText());
 				String prefer= CoPreference.getSelectedItem().toString();
 				
-
+				//sending the values to middleware
 				JDBC jdbc = new JDBC();
 				libBookRequest lib = new libBookRequest(checkin, checkout, prefer, id);
 				boolean result = jdbc.RequestBook(lib);
@@ -194,6 +190,7 @@ public class bookRequest extends JFrame {
 		west.add(updatebtn);
 		updatebtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ex) {
+				//Initialize and declare variables
 				String checkin1 = ((JTextField) c1.getDateEditor().getUiComponent()).getText();
 
 				try {
@@ -208,10 +205,11 @@ public class bookRequest extends JFrame {
 				} catch (ParseException e1) {
 
 				}
-				int id1 = Global.loginCred.getId();
+				int id1 = bookid;
+				
 				String prefer1= CoPreference.getSelectedItem().toString();
 				
-
+				//sending the values to middleware
 				JDBC jdbc1 = new JDBC();
 				libBookRequest lib1 = new libBookRequest(checkin1, checkout1, prefer1, id1);
 				boolean result1 = jdbc1.bookupdaterequest(lib1) != null;
@@ -219,30 +217,129 @@ public class bookRequest extends JFrame {
 			}
 		});
  
-		JButton clearbtn = new JButton("Delete");
-		clearbtn.setBounds(300, 400, 100, 30);
-		clearbtn.setFocusable(false);
-		clearbtn.setBackground(new Color(106, 101, 101));
-		clearbtn.setFont(new Font("Times New Roman", Font.BOLD, 18));
-		clearbtn.setForeground(Color.white);
-		west.add(clearbtn);
-		clearbtn.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent ex) {
-				int id = Global.loginCred.getId();
+		JButton deletebtn = new JButton("Delete");
+		deletebtn.setBounds(300, 400, 100, 30);
+		deletebtn.setFocusable(false);
+		deletebtn.setBackground(new Color(106, 101, 101));
+		deletebtn.setFont(new Font("Times New Roman", Font.BOLD, 18));
+		deletebtn.setForeground(Color.white);
+		west.add(deletebtn);
+		deletebtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ex) {	
+				//sending booking id and deleting value in sql
 				JDBC jdbc = new JDBC();
 				libBook lib = new libBook();
-				lib.setUid(id);
-				boolean result = jdbc.DeleteBook(lib);
+				lib.setUid(bookid);
+				boolean result = jdbc.DeleteBookstaf(lib);
 
 			}
 
 		});
+		
+		JLabel mes = new JLabel();
+		mes.setBounds(10,400,400,100);
+		mes.setText("Requires Customer to select the item from table.");
+					
+		west.add(mes);
+		mes.setVisible(false);
+		
+		deletebtn.addMouseListener(new java.awt.event.MouseAdapter() {
+			public void mouseEntered(java.awt.event.MouseEvent e) {
+				JButton j = (JButton) e.getSource();
+				mes.setVisible(true);
+				
+			}
+			public void mouseExited(java.awt.event.MouseEvent e) {
+				JButton j = (JButton) e.getSource();
+				
+				mes.setVisible(false);
+			}
+			});
+		model = new DefaultTableModel();
+		model.addColumn("Booking ID");
+		model.addColumn("Customer ID");
+		model.addColumn("Checkin date");
+		model.addColumn("Checkout date");
+ 		model.addColumn("Booking Status");
+		model.addColumn("Room Preference");
+		model.addColumn("Room No");
+		
+		tableRoom = new JTable(model);
+		tableRoom.addMouseListener(this);
+		
+		btnSearch = new JButton("Refresh");
+		btnSearch.setFont(new Font("Verdana", Font.BOLD, 12));
+		btnSearch.setBounds(20, 20, 100, 23);
+		btnSearch.setBackground(new Color(255, 255, 255));
+		btnSearch.setFocusable(false);
+		
+		btnSearch.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ex) {
+				model.setRowCount(0);//deleting rows of the table
+				//sending uid and retrieving data accodrding to uid 
+				JDBC jdbc = new JDBC();
+				int id = Global.loginCred.getId();
+				BookDataLib lib = new BookDataLib();
+				lib.setUid(id);
+			
+				ArrayList search = jdbc.Bookdatacust(lib);
+				if (search.size() > 0) {
+					for (int i = 0; i < search.size(); i++) {//counting the size of arraylist
+						lib = (BookDataLib) search.get(i);
 
+						Object[] tmp = { lib.getBookid(),lib.getUid(), lib.getCheckin_date(), lib.getCheckout_date(), lib.getBooking_status(),lib.getPreference(),lib.getRoomno()};
+						model.addRow(tmp);//inserting values into jtable
+
+					}
+				}
+			}
+		});
+
+	
+
+
+	
+		JScrollPane sroll = new JScrollPane(tableRoom);
+		sroll.setBounds(8, 50, 780, 400);
+		Center.add(sroll);
+		Center.add(btnSearch);
 		setVisible(true);
 
 	}
 
 	public static void main(String[] args) {
 		new bookRequest();
+	}
+
+	@Override
+	public void mouseClicked(MouseEvent e) {
+		int rows = tableRoom.getSelectedRow();
+		String bookingid =model.getValueAt(rows, 0).toString(); 
+		bookid = Integer.parseInt(bookingid);
+		
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
 	}
 }

@@ -207,7 +207,10 @@ public class CustomerReg {
 								lib.setId(id);
 								lib.settype(CustType);
 								boolean result1 = jdbc.logindata(lib) != null;
-							
+								frame2.dispose();
+								Login log = new Login();
+										log.frame.setVisible(true);
+
 							}
 						}
 					} else {

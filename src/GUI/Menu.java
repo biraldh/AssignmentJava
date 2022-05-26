@@ -6,6 +6,8 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -32,8 +34,13 @@ import ConLib.ReqMenuLib;
 import ConLib.ServiceLib;
 import ConLib.ServiceLibdata;
 
-public class Menu {
+public class Menu implements MouseListener {
 JFrame frame;
+JTable table;
+DefaultTableModel model;
+JTextField txtid , txtitem, txtrate, txtquantity; 
+JDateChooser caldate;
+
 	public Menu() {
 		
 		frame= new JFrame();
@@ -75,7 +82,7 @@ JFrame frame;
 		lblid.setBounds(40 , 60, 100, 25);
 		west.add(lblid);
 		
-		JTextField txtid = new JTextField();
+		txtid = new JTextField();
 		txtid.setFont(new Font("Times New Roman", Font.PLAIN, 16));
 		txtid.setForeground(Color.BLACK);
 		txtid.setBounds(110 , 60, 170, 25);
@@ -87,7 +94,7 @@ JFrame frame;
 		lblitem.setBounds(40 , 110, 100, 25);
 		west.add(lblitem);
 		
-		JTextField txtitem = new JTextField();
+		txtitem = new JTextField();
 		txtitem.setFont(new Font("Times New Roman", Font.PLAIN, 16));
 		txtitem.setForeground(Color.BLACK);
 		txtitem.setBounds(110 , 110, 170, 25);
@@ -99,7 +106,7 @@ JFrame frame;
 		lblrate.setBounds(40 , 160, 100, 25);
 		west.add(lblrate);
 		
-		JTextField txtrate = new JTextField();
+		txtrate = new JTextField();
 		txtrate.setFont(new Font("Times New Roman", Font.PLAIN, 16));
 		txtrate.setForeground(Color.BLACK);
 		txtrate.setBounds(110 , 160, 170, 25);
@@ -111,7 +118,7 @@ JFrame frame;
 		lblquantity.setBounds(40 , 210, 100, 25);
 		west.add(lblquantity);
 		
-		JTextField txtquantity = new JTextField();
+		txtquantity = new JTextField();
 		txtquantity.setFont(new Font("Times New Roman", Font.PLAIN, 16));
 		txtquantity.setForeground(Color.BLACK);
 		txtquantity.setBounds(110 , 210, 170, 25);
@@ -149,7 +156,7 @@ JFrame frame;
 		lbldate.setBounds(40 , 360, 100, 25);
 		west.add(lbldate);
 		
-		JDateChooser caldate = new JDateChooser();
+		caldate = new JDateChooser();
 		caldate.setFont(new Font("Times New Roman", Font.PLAIN, 16));
 		caldate.setDateFormatString("yyyy-MM-dd");
 		caldate.setBounds(110, 360, 170, 25);
@@ -254,17 +261,20 @@ JFrame frame;
 		CENTER.setBackground(new Color(50,50,50));
 		frame.getContentPane().add(CENTER, BorderLayout.CENTER);
 
-		DefaultTableModel model = new DefaultTableModel();
+		 model = new DefaultTableModel();
 		model.addColumn("Customer ID");
 		model.addColumn("Menu ID");
+		model.addColumn("Name");
 		model.addColumn("Item");
 		model.addColumn("Menu Status");
 		model.addColumn("Quantity");
 		model.addColumn("Date");
-		JTable tableRoom = new JTable(model);
 		
-		JButton btnsearch = new JButton("Search");
-		btnsearch.setBounds(20, 20, 90, 25);
+		 table = new JTable(model);
+		table.addMouseListener(this);
+		
+		JButton btnsearch = new JButton("Display");
+		btnsearch.setBounds(20, 20, 100, 25);
 		btnsearch.setFocusable(false);
 		btnsearch.setBackground(new Color(106, 101, 101));
 		btnsearch.setFont(new Font("Times New Roman", Font.BOLD, 18));
@@ -272,7 +282,7 @@ JFrame frame;
 		CENTER.add(btnsearch);
 		btnsearch.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ex) {
-
+				model.setRowCount(0);
 				JDBC jdbc = new JDBC();
 				MenuLibdata menu1 = new MenuLibdata();
 				ArrayList search = jdbc.menudata(menu1);
@@ -280,7 +290,7 @@ JFrame frame;
 					for (int i = 0; i < search.size(); i++) {
 						menu1 = (MenuLibdata) search.get(i);
 
-						Object[] tmp = { menu1.getUid(),menu1.getMenuid(),menu1.getItem(),menu1.getStatu(),menu1.getQuantity(),menu1.getDate() };
+						Object[] tmp = { menu1.getUid(),menu1.getMenuid(),menu1.getName(),menu1.getItem(),menu1.getStatu(),menu1.getQuantity(),menu1.getDate() };
 						model.addRow(tmp);
 
 					}
@@ -288,17 +298,13 @@ JFrame frame;
 			}
 		});
 		
-		JLabel mes = new JLabel("All the rooms are displayed");
-		mes.setBounds(340, 470, 250, 23);
-		mes.setFont(new Font("Times New Roman", Font.BOLD, 18));
-		mes.setForeground(Color.black);
-		mes.setVisible(false);
-
 
 	
-		JScrollPane sroll = new JScrollPane(tableRoom);
+		JScrollPane sroll = new JScrollPane(table);
 		sroll.setBounds(20, 50, 700, 400);
 		CENTER.add(sroll);
+		
+		
 		
 		frame.setVisible(true);
 		frame.setResizable(false);
@@ -309,6 +315,44 @@ JFrame frame;
 	public static void main(String[] args) {
 		new Menu();
 
+	}
+
+	@Override
+	public void mouseClicked(MouseEvent e) {
+		int rows =table.getSelectedRow();
+		String menuid =model.getValueAt(rows, 1).toString();
+		txtid.setText(menuid);
+		
+		String item =model.getValueAt(rows, 3).toString();
+		txtitem.setText(item);
+		
+		String quantity =model.getValueAt(rows, 5).toString();
+		txtquantity.setText(quantity);
+		
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

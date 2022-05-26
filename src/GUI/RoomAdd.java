@@ -224,7 +224,7 @@ public class RoomAdd extends JFrame {
 
 		btnSearch.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ex) {
-
+				model.setRowCount(0);
 				JDBC jdbc = new JDBC();
 				String ty = CoRoomType.getSelectedItem().toString();
 				libRoom ro = new libRoom();

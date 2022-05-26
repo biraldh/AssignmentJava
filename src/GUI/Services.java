@@ -6,6 +6,8 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -31,10 +33,12 @@ import ConLib.LibServiceReq;
 import ConLib.ServiceLib;
 import ConLib.ServiceLibdata;
 
-public class Services {
+public class Services implements MouseListener {
 	JFrame frame;
 	JComboBox comboBox;
-
+	JTextField txtService_id, txtName, txtQuantity;
+	DefaultTableModel model;
+	JTable tableservice;
 	public Services() {
 		frame = new JFrame();
 		frame.setSize(1200, 600);
@@ -47,33 +51,36 @@ public class Services {
 		east.setBackground(new Color(0,0,0));
 		frame.getContentPane().add(east, BorderLayout.EAST);
 		
-		DefaultTableModel model = new DefaultTableModel();
+		model = new DefaultTableModel();
 		model.addColumn("Customer ID");
 		model.addColumn("Service ID");
+		model.addColumn("Name");
 		model.addColumn("Service");
 		model.addColumn("Service Status");
 		model.addColumn("Quantity");
 		model.addColumn("Date");
-		JTable tableRoom = new JTable(model);
+		tableservice = new JTable(model);
+		tableservice.addMouseListener(this);
 		
-		JButton btnsearch = new JButton("Search");
-		btnsearch.setBounds(20, 20, 90, 25);
+		JButton btnsearch = new JButton("Display");
+		btnsearch.setBounds(20, 20, 100, 25);
 		btnsearch.setFocusable(false);
 		btnsearch.setBackground(new Color(106, 101, 101));
 		btnsearch.setFont(new Font("Times New Roman", Font.BOLD, 18));
 		btnsearch.setForeground(Color.white);
 		east.add(btnsearch);
 		btnsearch.addActionListener(new ActionListener() {
+			
 			public void actionPerformed(ActionEvent ex) {
-
+				model.setRowCount(0);//clearing the rows of the jtable
+				//Retrieving data from middleware
 				JDBC jdbc = new JDBC();
 				ServiceLibdata servic = new ServiceLibdata();
 				ArrayList search = jdbc.servicedata(servic);
 				if (search.size() > 0) {
 					for (int i = 0; i < search.size(); i++) {
 						servic = (ServiceLibdata) search.get(i);
-
-						Object[] tmp = { servic.getUid(),servic.getServiceId(),servic.getItem(),servic.getStatus(),servic.getQuantity(),servic.getDate() };
+						Object[] tmp = { servic.getUid(),servic.getServiceId(),servic.getName(),servic.getItem(),servic.getStatus(),servic.getQuantity(),servic.getDate() };
 						model.addRow(tmp);
 
 					}
@@ -81,16 +88,9 @@ public class Services {
 			}
 		});
 		
-		JLabel mes = new JLabel("All the rooms are displayed");
-		mes.setBounds(340, 470, 250, 23);
-		mes.setFont(new Font("Times New Roman", Font.BOLD, 18));
-		mes.setForeground(Color.black);
-		mes.setVisible(false);
-
-
 	
-		JScrollPane sroll = new JScrollPane(tableRoom);
-		sroll.setBounds(20, 50, 700, 400);
+		JScrollPane sroll = new JScrollPane(tableservice);
+		sroll.setBounds(10, 50, 730, 400);
 		east.add(sroll);
 		
 		JPanel north = new JPanel();
@@ -133,7 +133,7 @@ public class Services {
 		lblService_id.setBounds(50, 60, 100, 25);
 		west.add(lblService_id);
 
-		JTextField txtService_id = new JTextField();
+		txtService_id = new JTextField();
 		txtService_id.setFont(new Font("Times New Roman", Font.PLAIN, 14));
 		txtService_id.setForeground(Color.black);
 		txtService_id.setBounds(150, 60, 200, 25);
@@ -145,7 +145,7 @@ public class Services {
 		lblName.setBounds(50, 100, 100, 25);
 		west.add(lblName);
 
-		JTextField txtName = new JTextField();
+		txtName = new JTextField();
 		txtName.setFont(new Font("Times New Roman", Font.PLAIN, 14));
 		txtName.setForeground(Color.black);
 		txtName.setBounds(150, 100, 200, 25);
@@ -204,7 +204,7 @@ public class Services {
 		lblQuantity.setBounds(50, 300, 100, 25);
 		west.add(lblQuantity);
 
-		JTextField txtQuantity = new JTextField();
+		txtQuantity = new JTextField();
 		txtQuantity.setFont(new Font("Times New Roman", Font.PLAIN, 14));
 		txtQuantity.setForeground(Color.black);
 		txtQuantity.setBounds(150, 300, 200, 25);
@@ -219,6 +219,7 @@ public class Services {
 		west.add(updatebtn);
 		updatebtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ex) {
+				//Initialize and declare variables
 				int userid = Integer.parseInt(txtService_id.getText());
 
 				String service = txtName.getText();
@@ -234,6 +235,7 @@ public class Services {
 				}
 				String type = ComboBox1.getSelectedItem().toString();
 				String quantity = txtQuantity.getText();
+				//sending data to middleware
 				JDBC jdbc = new JDBC();
 				ServiceLib lib = new ServiceLib(serviceid, userid, service, rate, Status, date, type, quantity);
 				boolean result = jdbc.SaveService(lib);
@@ -251,6 +253,7 @@ public class Services {
 		Deletebtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ex) {
 				int serviceid = Integer.parseInt(txtService_id.getText());
+				//sending uid to middleware
 				JDBC jdbc1 = new JDBC();
 				LibServiceReq lib1 = new LibServiceReq();
 				lib1.setServiceid( serviceid);
@@ -269,6 +272,7 @@ public class Services {
 		west.add(Confirmbtn);
 		Confirmbtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ex) {
+				//initialize and declare variable
 				int userid = Integer.parseInt(txtService_id.getText());
 
 				String service = txtName.getText();
@@ -284,6 +288,7 @@ public class Services {
 				}
 				String type = ComboBox1.getSelectedItem().toString();
 				String quantity = txtQuantity.getText();
+				//sending data to middleware
 				JDBC jdbc = new JDBC();
 				ServiceLib lib = new ServiceLib(serviceid, userid, service, rate, Status, date, type, quantity);
 				boolean result = jdbc.SaveService(lib);
@@ -302,6 +307,46 @@ public class Services {
 
 	public static void main(String[] args) {
 		new Services();
+	}
+
+	@Override
+	public void mouseClicked(MouseEvent e) {
+		int rows = tableservice.getSelectedRow();//getting the row number
+		//row value if click  goes to txtService_id
+		String serviceid = model.getValueAt(rows, 1).toString();
+		txtService_id.setText(serviceid);
+		//row value if click  goes to txtName
+		String service = model.getValueAt(rows, 3).toString();
+		txtName.setText(service);
+		
+		//row value if click  goes to txtQuantity
+		String quantity = model.getValueAt(rows, 5).toString();
+		txtQuantity.setText(quantity);
+		
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

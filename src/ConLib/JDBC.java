@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
 
-
 import GUI.CustomerReg;
 
 public class JDBC extends Connector {
@@ -16,7 +15,7 @@ public class JDBC extends Connector {
 	JButton btn;
 
 	public boolean save(CorpLib inse) {
-		// declare and initialize
+		// registration for Corp-customer
 		boolean result = false;
 		Connection conn;
 		String sql = "insert into registration(Customerid,Fullname, Dob, gender ,address, email, MobileNum, customerType,CompanyName ) values(?,?,?,?,?,?,?,?,?)";
@@ -50,7 +49,7 @@ public class JDBC extends Connector {
 	}
 
 	public LoginLibs logindata(LoginLibs user) {
-
+		// customer login data inserted
 		String sql = "insert into user (name , password, CustomerId, UserType) values(?,?,?,?)";
 		try {
 
@@ -71,7 +70,7 @@ public class JDBC extends Connector {
 	}
 
 	public LoginLibs logindatastaf(LoginLibs user) {
-
+		// staff login data inserted
 		String sql = "insert into user (name , password, StafId, UserType) values(?,?,?,?)";
 		try {
 
@@ -92,7 +91,7 @@ public class JDBC extends Connector {
 	}
 
 	public boolean saveCust(CustomerLib inse) {
-		// declare and initialize
+		//registration for customer
 		boolean result = false;
 		Connection conn;
 		String sql = "insert into registration(Customerid, Fullname, Dob, gender ,address, email, MobileNum, customerType ) values(?,?,?,?,?,?,?,?)";
@@ -124,6 +123,7 @@ public class JDBC extends Connector {
 
 	public boolean RequestBook(libBookRequest inse) {
 		// declare and initialize
+		//customer requests booking
 		boolean result = false;
 		Connection conn;
 		String sql = "insert into booking (Checkin_date,Checkout_date,roomPreference, Uid)values(?,?,?,?)";
@@ -152,10 +152,10 @@ public class JDBC extends Connector {
 
 	public libBookRequest bookupdaterequest(libBookRequest inse) {
 		Connection conn;
-
+		//customer updates booking
 		try {
 
-			String query1 = "update Booking set  Checkin_date =?, Checkout_date=?,roomPreference=? where uid= ? and roomPreference != ' '";
+			String query1 = "update Booking set  Checkin_date =?, Checkout_date=?,roomPreference=? where Booking_ID =? ";
 			conn = connect();
 			PreparedStatement pst = conn.prepareStatement(query1);
 			pst.setString(1, inse.getCheckin_date());
@@ -177,6 +177,7 @@ public class JDBC extends Connector {
 		// declare and initialize
 		boolean result = false;
 		Connection conn;
+		//staff confirms booking
 		String sql = "update Booking set  Checkin_date =?, Checkout_date=?,Booking_status=?,guestName=?,roomId =? where Booking_ID= ? ";
 		PreparedStatement pstat;
 		try {
@@ -202,31 +203,10 @@ public class JDBC extends Connector {
 
 	}
 
-	public boolean DeleteBook(libBook inse) {
-		// declare and initialize
-		boolean result = false;
-		Connection conn;
-		String sql = "delete from booking where uid = ? and roomID != ' ' ";
-		PreparedStatement pstat;
-		try {
-			// sending data from textfield to sql
-			conn = connect();
-			pstat = conn.prepareStatement(sql);
-			pstat.setInt(1, inse.getUid());
-			pstat.executeUpdate();
-			pstat.close();
-			conn.close();
-			result = true;
-			JOptionPane.showMessageDialog(btn, "Booking deleted");
-		} catch (Exception ex) {
-			JOptionPane.showMessageDialog(btn, "please try again!!");
-			System.out.println("Error :" + ex.getMessage());
-		}
-		return result;
 
-	}
 	public boolean DeleteBookstaf(libBook inse) {
 		// declare and initialize
+		//booking deleted by staff
 		boolean result = false;
 		Connection conn;
 		String sql = "delete from booking where Booking_ID = ?";
@@ -251,6 +231,7 @@ public class JDBC extends Connector {
 
 	public boolean saveStaff(staffLib inse) {
 		// declare and initialize
+		//staff registration
 		boolean result = false;
 		Connection conn;
 		String sql = "insert into staff(StaffID, FullName ,Gender,Address,DOB ,MobileNo,Email, StaffType) values(?,?,?,?,?,?,?,?)";
@@ -281,7 +262,7 @@ public class JDBC extends Connector {
 	}
 
 	public LoginLibs loginstaff(LoginLibs user) {
-
+		//getting login credentials of staff
 		String sql = "Select * from staff inner join user on user.StafId = staff.StaffID where Name = ? and Password =?";
 		try {
 
@@ -305,7 +286,7 @@ public class JDBC extends Connector {
 	}
 
 	public LoginLibs loginCust(LoginLibs user) {
-
+		//getting login credentials of customer
 		String sql = "Select * from registration inner join user on \r\n"
 				+ "user.CustomerId = registration.Customerid where Name = ? and Password =?; ";
 		try {
@@ -314,6 +295,34 @@ public class JDBC extends Connector {
 			PreparedStatement pstat = conn.prepareStatement(sql);
 			pstat.setString(1, user.getUsername());
 			pstat.setString(2, user.getPassword());
+			ResultSet rs = pstat.executeQuery();
+
+			while (rs.next()) {
+				user.setId(rs.getInt("UserId"));
+				// user.setFullName(rs.getString("FullName"));
+				// user.setAddress(rs.getString("Address"));
+				// user.setEmail(rs.getString("Email"));
+				// user.setPhoneNo(rs.getInt("PhoneNo"));
+				user.settype(rs.getString("UserType"));
+			}
+		}
+
+		catch (Exception ex) {
+			System.out.println("Error" + ex.getMessage());
+		}
+		return user;
+	}
+
+	public LoginLibs billCust(LoginLibs user) {
+		//receipt given to customer
+		String sql = "Select * from registration inner join user on \r\n"
+				+ "user.CustomerId = registration.Customerid where UserId = ?";
+		try {
+
+			Connection conn = connect();
+			PreparedStatement pstat = conn.prepareStatement(sql);
+			pstat.setInt(1, user.getId());
+
 			ResultSet rs = pstat.executeQuery();
 
 			while (rs.next()) {
@@ -334,7 +343,8 @@ public class JDBC extends Connector {
 	}
 
 	public ArrayList Bookdata(BookDataLib bok1) {
-		String query = "select * from Booking where roomPreference != ' ' ";
+		//booking data for table
+		String query = "select * from booking  join user on booking.Uid = user.UserId join registration on user.CustomerId = registration.CustomerId where roomPreference != ' ' ";
 		Connection conn;
 		PreparedStatement pstat;
 
@@ -344,8 +354,35 @@ public class JDBC extends Connector {
 			pstat = conn.prepareStatement(query);
 			ResultSet rs = pstat.executeQuery();
 			while (rs.next()) {
-				BookDataLib bok = new BookDataLib(rs.getString("Checkin_date"), rs.getString("Checkout_date"),
-						rs.getString("Booking_status"), rs.getString("roomPreference"), rs.getInt("Uid"), (rs.getInt("Booking_ID")));
+				BookDataLib bok = new BookDataLib(rs.getString("Fullname"),rs.getString("Checkin_date"), rs.getString("Checkout_date"),
+						rs.getString("Booking_status"), rs.getString("roomPreference"), rs.getInt("Uid"),
+						(rs.getInt("Booking_ID")), rs.getInt("roomId"));
+
+				search.add(bok);
+			}
+			conn.close();
+		} catch (Exception ex) {
+			System.out.println(ex.getMessage());
+		}
+		return search;
+	}
+
+	public ArrayList Bookdatacust(BookDataLib bok1) {
+		//booking data for table
+		String query = "select * from Booking where roomPreference != ' ' and Uid =?";
+		Connection conn;
+		PreparedStatement pstat;
+
+		ArrayList search = new ArrayList();
+		try {
+			conn = connect();
+			pstat = conn.prepareStatement(query);
+			pstat.setInt(1, bok1.getUid());
+			ResultSet rs = pstat.executeQuery();
+			while (rs.next()) {
+				BookDataLib bok = new BookDataLib(rs.getString("guestName"),rs.getString("Checkin_date"), rs.getString("Checkout_date"),
+						rs.getString("Booking_status"), rs.getString("roomPreference"), rs.getInt("Uid"),
+						(rs.getInt("Booking_ID")), rs.getInt("roomId"));
 
 				search.add(bok);
 			}
@@ -357,7 +394,8 @@ public class JDBC extends Connector {
 	}
 
 	public boolean ReqService(LibServiceReq lib) {
-		String sql = "insert into services(ServiceId,name,date,Quantity) values(?,?,?,?) ";
+		//requesting service
+		String sql = "insert into services(ServiceId,item,date,Quantity) values(?,?,?,?) ";
 		Connection conn;
 		PreparedStatement pstat;
 		boolean result = false;
@@ -379,7 +417,9 @@ public class JDBC extends Connector {
 		return result;
 
 	}
-	public boolean addServiceBook(LibServiceReq  lib) {
+
+	public boolean addServiceBook(LibServiceReq lib) {
+		//service data added to booking table
 		String sql = " insert into booking (serviceId,Uid)values (? , ?)";
 		Connection conn;
 		PreparedStatement pstat;
@@ -394,26 +434,28 @@ public class JDBC extends Connector {
 			pstat.close();
 			conn.close();
 			result = true;
-			
+
 		} catch (Exception ex) {
 			System.out.println("Error" + ex.getMessage());
 		}
 		return result;
 
 	}
-	public boolean requpdateService(LibServiceReq lib ) {
-		String sql = "update services set name = ? , date = ? , Quantity = ? where ServiceId = ? ";
+
+	public boolean requpdateService(LibServiceReq lib) {
+		//updating service by customer 
+		String sql = "update services set item = ? , date = ? , Quantity = ? where ServiceId = ? ";
 		Connection conn;
 		PreparedStatement pstat;
 		boolean result = false;
 		try {
 			conn = connect();
 			pstat = conn.prepareStatement(sql);
-			
+
 			pstat.setString(1, lib.getService());
 			pstat.setString(2, lib.getDate());
 			pstat.setString(3, lib.getQuantity());
-			
+
 			pstat.setInt(4, lib.getServiceid());
 			pstat.executeUpdate();
 			pstat.close();
@@ -427,23 +469,23 @@ public class JDBC extends Connector {
 
 	}
 
-	
 	public boolean SaveService(ServiceLib lib) {
-		String sql = "update services set name = ?, type= ?, Rate = ?, Status = ?, date = ?,Quantity =  ? where ServiceId = ? ";
+		//service confirmed by staff
+		String sql = "update services set item = ?, type= ?, Rate = ?, Status = ?, date = ?,Quantity =  ? where ServiceId = ? ";
 		Connection conn;
 		PreparedStatement pstat;
 		boolean result = false;
 		try {
 			conn = connect();
 			pstat = conn.prepareStatement(sql);
-			
+
 			pstat.setString(1, lib.getServices());
 			pstat.setString(2, lib.getTypes());
 			pstat.setString(3, lib.getRate());
 			pstat.setString(4, lib.getStatus());
 			pstat.setString(5, lib.getDate());
 			pstat.setString(6, lib.getQuantity());
-			
+
 			pstat.setInt(7, lib.getServiceid());
 			pstat.executeUpdate();
 			pstat.close();
@@ -456,8 +498,9 @@ public class JDBC extends Connector {
 		return result;
 
 	}
-	public LibServiceReq serviceId(LibServiceReq user) {
 
+	public LibServiceReq serviceId(LibServiceReq user) {
+		//getting serviceid from sql using uid and service name
 		String sql = "Select * from booking inner join services on Services.ServiceId = booking.serviceId where uid = ? and name= ?";
 		try {
 
@@ -468,7 +511,7 @@ public class JDBC extends Connector {
 			ResultSet rs = pstat.executeQuery();
 
 			while (rs.next()) {
-				user.setServiceid(rs.getInt("serviceId"));			
+				user.setServiceid(rs.getInt("serviceId"));
 			}
 		}
 
@@ -477,45 +520,51 @@ public class JDBC extends Connector {
 		}
 		return user;
 	}
+
 	public boolean deleteService(LibServiceReq lib) {
+		//deleteing service 
 		boolean result = false;
-		String sql = "DELETE  from services WHERE ServiceId = ? ";		
+		String sql = "DELETE  from services WHERE ServiceId = ? ";
 		Connection conn;
 		PreparedStatement pstat;
 		try {
-			 conn = connect();
-			 pstat = conn.prepareStatement(sql);
-			 pstat.setInt(1, lib.getServiceid());
-			 pstat.executeUpdate();
-				pstat.close();
-				conn.close();
-				result = true;
-				JOptionPane.showMessageDialog(btn, "service deleted");
-		}catch (Exception ex) {
+			conn = connect();
+			pstat = conn.prepareStatement(sql);
+			pstat.setInt(1, lib.getServiceid());
+			pstat.executeUpdate();
+			pstat.close();
+			conn.close();
+			result = true;
+			JOptionPane.showMessageDialog(btn, "service deleted");
+		} catch (Exception ex) {
 			System.out.println("Error" + ex.getMessage());
 		}
 		return result;
 	}
+
 	public boolean deleteServiceinbook(LibServiceReq lib) {
+		//deleteing service in the booking table of sql
 		boolean result = false;
 		String sql = "DELETE FROM booking WHERE serviceId = ? ";
 		Connection conn;
 		PreparedStatement pstat;
 		try {
-			 conn = connect();
-			 pstat = conn.prepareStatement(sql);
-			 pstat.setInt(1, lib.getServiceid());
-			 pstat.executeUpdate();
-				pstat.close();
-				conn.close();
-				result = true;
-				
-		}catch (Exception ex) {
+			conn = connect();
+			pstat = conn.prepareStatement(sql);
+			pstat.setInt(1, lib.getServiceid());
+			pstat.executeUpdate();
+			pstat.close();
+			conn.close();
+			result = true;
+
+		} catch (Exception ex) {
 			System.out.println("Error" + ex.getMessage());
 		}
 		return result;
 	}
+
 	public ArrayList servicedata(ServiceLibdata lib) {
+		//getting service data to display in table
 		String query = " select * from booking inner join services on services.serviceId = booking.serviceId";
 		Connection conn;
 		PreparedStatement pstat;
@@ -524,11 +573,36 @@ public class JDBC extends Connector {
 		try {
 			conn = connect();
 			pstat = conn.prepareStatement(query);
-			
+
 			ResultSet rs = pstat.executeQuery();
 			while (rs.next()) {
-				ServiceLibdata serve = new ServiceLibdata(rs.getInt("serviceId"), rs.getInt("Uid"),  rs.getString("name"),
-						rs.getString("Status"), rs.getString("Quantity"), rs.getString("Date"));
+				ServiceLibdata serve = new ServiceLibdata(rs.getInt("serviceId"), rs.getInt("Uid"),rs.getString("guestName"),
+						rs.getString("item"), rs.getString("Status"), rs.getString("Quantity"), rs.getString("Date"));
+
+				search.add(serve);
+			}
+			conn.close();
+		} catch (Exception ex) {
+			System.out.println(ex.getMessage());
+		}
+		return search;
+	}
+
+	public ArrayList servicview(ServiceLibdata lib) {
+		//getting service data to display in table
+		String query = " select * from booking inner join services on services.serviceId = booking.serviceId where uid = ?";
+		Connection conn;
+		PreparedStatement pstat;
+
+		ArrayList search = new ArrayList();
+		try {
+			conn = connect();
+			pstat = conn.prepareStatement(query);
+			pstat.setInt(1, lib.getUid());
+			ResultSet rs = pstat.executeQuery();
+			while (rs.next()) {
+				ServiceLibdata serve = new ServiceLibdata(rs.getInt("serviceId"), rs.getInt("Uid"),rs.getString("guestName"),
+						rs.getString("item"), rs.getString("Status"), rs.getString("Quantity"), rs.getString("Date"));
 
 				search.add(serve);
 			}
@@ -540,6 +614,7 @@ public class JDBC extends Connector {
 	}
 
 	public boolean ReqMenu(ReqMenuLib lib) {
+		//request menu by customer
 		String sql = "insert into menu(MenuId, Item, date, Quantity, Menutype) values(?,?,?,?,?) ";
 		Connection conn;
 		PreparedStatement pstat;
@@ -563,7 +638,9 @@ public class JDBC extends Connector {
 		return result;
 
 	}
-	public boolean addMenuBook(ReqMenuLib   lib) {
+
+	public boolean addMenuBook(ReqMenuLib lib) {
+		//request menu by customer and adding the menuid to booking table
 		String sql = " insert into booking (menuid, Uid)values (? , ?)";
 		Connection conn;
 		PreparedStatement pstat;
@@ -578,15 +655,16 @@ public class JDBC extends Connector {
 			pstat.close();
 			conn.close();
 			result = true;
-			
+
 		} catch (Exception ex) {
 			System.out.println("Error" + ex.getMessage());
 		}
 		return result;
 
 	}
-	public ReqMenuLib menuId(ReqMenuLib user) {
 
+	public ReqMenuLib menuId(ReqMenuLib user) {
+		//getting menuid
 		String sql = "Select * from booking inner join menu on menu.menuId = booking.menuid where uid = ? and Item= ?";
 		try {
 
@@ -597,7 +675,7 @@ public class JDBC extends Connector {
 			ResultSet rs = pstat.executeQuery();
 
 			while (rs.next()) {
-				user.setMenuid(rs.getInt("menuid"));			
+				user.setMenuid(rs.getInt("menuid"));
 			}
 		}
 
@@ -606,7 +684,9 @@ public class JDBC extends Connector {
 		}
 		return user;
 	}
-	public boolean requpdateMenue(ReqMenuLib lib ) {
+
+	public boolean requpdateMenue(ReqMenuLib lib) {
+		//menu updated by customer in sql
 		String sql = "update menu set Item = ? , date = ? , Quantity = ?, MenuType= ? where MenuId = ? ";
 		Connection conn;
 		PreparedStatement pstat;
@@ -614,10 +694,10 @@ public class JDBC extends Connector {
 		try {
 			conn = connect();
 			pstat = conn.prepareStatement(sql);
-			
+
 			pstat.setString(1, lib.getItem());
 			pstat.setString(2, lib.getDate());
-			pstat.setString(3, lib.getQuantiy());	
+			pstat.setString(3, lib.getQuantiy());
 			pstat.setString(4, lib.getType());
 			pstat.setInt(5, lib.getMenuid());
 			pstat.executeUpdate();
@@ -631,45 +711,51 @@ public class JDBC extends Connector {
 		return result;
 
 	}
+
 	public boolean deleteMenu(ReqMenuLib lib) {
+		//menu deleted in menu table
 		boolean result = false;
-		String sql = "DELETE  from menu WHERE  menuId = ? ";		
+		String sql = "DELETE  from menu WHERE  menuId = ? ";
 		Connection conn;
 		PreparedStatement pstat;
 		try {
-			 conn = connect();
-			 pstat = conn.prepareStatement(sql);
-			 pstat.setInt(1, lib.getMenuid());
-			 pstat.executeUpdate();
-				pstat.close();
-				conn.close();
-				result = true;
-				JOptionPane.showMessageDialog(btn, "service deleted");
-		}catch (Exception ex) {
+			conn = connect();
+			pstat = conn.prepareStatement(sql);
+			pstat.setInt(1, lib.getMenuid());
+			pstat.executeUpdate();
+			pstat.close();
+			conn.close();
+			result = true;
+			JOptionPane.showMessageDialog(btn, "order cancelled");
+		} catch (Exception ex) {
 			System.out.println("Error" + ex.getMessage());
 		}
 		return result;
 	}
+
 	public boolean deleteMenuinbook(ReqMenuLib lib) {
+		//menuid deleted in booking table
 		boolean result = false;
 		String sql = "DELETE FROM booking WHERE  menuId = ? ";
 		Connection conn;
 		PreparedStatement pstat;
 		try {
-			 conn = connect();
-			 pstat = conn.prepareStatement(sql);
-			 pstat.setInt(1, lib.getMenuid());
-			 pstat.executeUpdate();
-				pstat.close();
-				conn.close();
-				result = true;
-				
-		}catch (Exception ex) {
+			conn = connect();
+			pstat = conn.prepareStatement(sql);
+			pstat.setInt(1, lib.getMenuid());
+			pstat.executeUpdate();
+			pstat.close();
+			conn.close();
+			result = true;
+
+		} catch (Exception ex) {
 			System.out.println("Error" + ex.getMessage());
 		}
 		return result;
 	}
+
 	public boolean SaveMenu(MenuLib lib) {
+		//menu confirmed by staff
 		String sql = "update menu set Item = ?, Rate= ?, MenuType= ?, Status = ?, Date = ?, Quantity =  ? where MenuId = ? ";
 		Connection conn;
 		PreparedStatement pstat;
@@ -677,13 +763,13 @@ public class JDBC extends Connector {
 		try {
 			conn = connect();
 			pstat = conn.prepareStatement(sql);
-			
+
 			pstat.setString(1, lib.getItem());
 			pstat.setString(2, lib.getRate());
 			pstat.setString(3, lib.getType());
 			pstat.setString(4, lib.getStatus());
 			pstat.setString(5, lib.getDate());
-			pstat.setString(6, lib.getQuantity());		
+			pstat.setString(6, lib.getQuantity());
 			pstat.setInt(7, lib.getmenuId());
 			pstat.executeUpdate();
 			pstat.close();
@@ -696,46 +782,52 @@ public class JDBC extends Connector {
 		return result;
 
 	}
+
 	public boolean deleteMenustaf(MenuLib lib) {
+		//menu deleted by staff
 		boolean result = false;
-		String sql = "DELETE  from menu WHERE  menuId = ? ";		
+		String sql = "DELETE  from menu WHERE  menuId = ? ";
 		Connection conn;
 		PreparedStatement pstat;
 		try {
-			 conn = connect();
-			 pstat = conn.prepareStatement(sql);
-			 pstat.setInt(1, lib.getmenuId());
-			 pstat.executeUpdate();
-				pstat.close();
-				conn.close();
-				result = true;
-				JOptionPane.showMessageDialog(btn, "Item deleted");
-		}catch (Exception ex) {
+			conn = connect();
+			pstat = conn.prepareStatement(sql);
+			pstat.setInt(1, lib.getmenuId());
+			pstat.executeUpdate();
+			pstat.close();
+			conn.close();
+			result = true;
+			JOptionPane.showMessageDialog(btn, "Item deleted");
+		} catch (Exception ex) {
 			System.out.println("Error" + ex.getMessage());
 		}
 		return result;
 	}
+
 	public boolean deleteMenuinbookstaf(MenuLib lib) {
+		//menuid deleted by staff in booking table
 		boolean result = false;
 		String sql = "DELETE FROM booking WHERE  menuId = ? ";
 		Connection conn;
 		PreparedStatement pstat;
 		try {
-			 conn = connect();
-			 pstat = conn.prepareStatement(sql);
-			 pstat.setInt(1, lib.getmenuId());
-			 pstat.executeUpdate();
-				pstat.close();
-				conn.close();
-				result = true;
-				
-		}catch (Exception ex) {
+			conn = connect();
+			pstat = conn.prepareStatement(sql);
+			pstat.setInt(1, lib.getmenuId());
+			pstat.executeUpdate();
+			pstat.close();
+			conn.close();
+			result = true;
+
+		} catch (Exception ex) {
 			System.out.println("Error" + ex.getMessage());
 		}
 		return result;
 	}
+
 	public ArrayList menudata(MenuLibdata menu) {
-		String query = "select * from booking inner join menu on booking.menuId = menu.menuId";
+		//fetching the booking and menu data to be displayed in the Jtable
+		String query = "select * from booking  join menu on booking.menuId = menu.menuId  join user on booking.Uid = user.UserId";
 		Connection conn;
 		PreparedStatement pstat;
 
@@ -743,11 +835,37 @@ public class JDBC extends Connector {
 		try {
 			conn = connect();
 			pstat = conn.prepareStatement(query);
-			
+
 			ResultSet rs = pstat.executeQuery();
 			while (rs.next()) {
-				MenuLibdata menu1 = new MenuLibdata(rs.getInt("Uid"), rs.getInt("menuid"), rs.getString("Item"),
-						rs.getString("Status"), rs.getString("Quantity"),rs.getString("Date") );
+				MenuLibdata menu1 = new MenuLibdata(rs.getInt("Uid"), rs.getInt("menuid"),rs.getString("Name"), rs.getString("Item"),
+						rs.getString("Status"), rs.getString("Quantity"), rs.getString("Date"));
+
+				search.add(menu1);
+			}
+			conn.close();
+		} catch (Exception ex) {
+			System.out.println(ex.getMessage());
+		}
+		return search;
+
+	}
+
+	public ArrayList menuview(MenuLibdata menu) {
+		//fetching the booking and menu data of a specific customer which is displayed in the Jtable 
+		String query = "select * from booking inner join menu on booking.menuId = menu.menuId where uid= ?";
+		Connection conn;
+		PreparedStatement pstat;
+
+		ArrayList search = new ArrayList();
+		try {
+			conn = connect();
+			pstat = conn.prepareStatement(query);
+			pstat.setInt(1, menu.getUid());
+			ResultSet rs = pstat.executeQuery();
+			while (rs.next()) {
+				MenuLibdata menu1 = new MenuLibdata(rs.getInt("Uid"), rs.getInt("menuid"),rs.getString("guestName"), rs.getString("Item"),
+						rs.getString("Status"), rs.getString("Quantity"), rs.getString("Date"));
 
 				search.add(menu1);
 			}
@@ -757,7 +875,9 @@ public class JDBC extends Connector {
 		}
 		return search;
 	}
+
 	public ArrayList roomdata(libRoom rom1) {
+		//getting room data which have room status as "available"
 		String query = "select * from room  where  roomType = ? and roomStatus =\"Available\";";
 		Connection conn;
 		PreparedStatement pstat;
@@ -782,6 +902,7 @@ public class JDBC extends Connector {
 	}
 
 	public boolean saveroom(libRoom lib) {
+		//staff inserting data of new rooms in sql
 		String sql = "insert into room(roomId,roomType,roomPrice,roomFacilities,roomStatus) values(?,?,?,?,?) ";
 		Connection conn;
 		PreparedStatement pstat;
@@ -804,15 +925,16 @@ public class JDBC extends Connector {
 		return result;
 
 	}
-	
+
 	public boolean updateroom(libRoom lib) {
+		//updating the specification of the rooms by staff in sql
 		String sql = "update room set roomType =?, roomPrice = ?, roomFacilities = ?, roomStatus =?  where roomId = ?";
 		Connection conn;
 		PreparedStatement pstat;
 		boolean result = false;
 		try {
 			conn = connect();
-			pstat = conn.prepareStatement(sql);			
+			pstat = conn.prepareStatement(sql);
 			pstat.setString(1, lib.getRoomType());
 			pstat.setString(2, lib.getRoomPrice());
 			pstat.setString(3, lib.getFacilities());
@@ -828,14 +950,16 @@ public class JDBC extends Connector {
 		return result;
 
 	}
+
 	public boolean deleteroom(libRoom lib) {
+		//deleting a room in sql 
 		String sql = "delete from room  where roomId = ?";
 		Connection conn;
 		PreparedStatement pstat;
 		boolean result = false;
 		try {
 			conn = connect();
-			pstat = conn.prepareStatement(sql);			
+			pstat = conn.prepareStatement(sql);
 			pstat.setInt(1, lib.getRoomNo());
 			pstat.executeUpdate();
 			pstat.close();
@@ -847,7 +971,9 @@ public class JDBC extends Connector {
 		return result;
 
 	}
+
 	public boolean invoicestaf(BillLib lib) {
+		//inserting data in the invoice table
 		String sql = "insert into invoice (Status,InvoiceDate,VatCharge,  Total, DetailId, bookingid) values(?,?,?,?,?,?) ";
 		Connection conn;
 		PreparedStatement pstat;
@@ -872,7 +998,9 @@ public class JDBC extends Connector {
 		return result;
 
 	}
+
 	public boolean detailstaf(BillLib lib) {
+		//inserting data in the InvoiceDetail table
 		String sql = "insert into InvoiceDetail(detailID, ItemName, ItemQuantity, ItmeRate) values(?,?,?,?) ";
 		Connection conn;
 		PreparedStatement pstat;
@@ -881,46 +1009,49 @@ public class JDBC extends Connector {
 			conn = connect();
 			pstat = conn.prepareStatement(sql);
 			pstat.setInt(1, lib.getDetailid());
-			pstat.setString(2, lib.getItem());			
+			pstat.setString(2, lib.getItem());
 			pstat.setString(3, lib.getQuantity());
-			pstat.setString(4, lib.getRate());			
+			pstat.setString(4, lib.getRate());
 			pstat.executeUpdate();
 			pstat.close();
 			conn.close();
 			result = true;
-			
+
 		} catch (Exception ex) {
 			System.out.println("Error" + ex.getMessage());
 		}
 		return result;
 
 	}
-	public ReceiptLib  receiptdata(ReceiptLib lib) {
-		
-		String sql = "select * from Invoice i inner join InvoiceDetail id on i.DetailId = id.detailID inner join booking b on i.bookingid = b.Booking_ID where Uid = ? and ItemName = 'room' ";
+
+	public ReceiptLib receiptdata(ReceiptLib lib) {
+		//displaying the invoice, invoice detail as well as booking for receipt according to uid , item name and status 
+		String sql = "select * from Invoice i inner join InvoiceDetail id on i.DetailId = id.detailID inner join booking b on i.bookingid = b.Booking_ID where Uid = ? and ItemName = 'room' and  i.status = 'unpaid' ";
 		Connection conn;
 		PreparedStatement pstat;
 		try {
-			 conn = connect();
-			 pstat = conn.prepareStatement(sql);
-			 pstat.setInt(1, lib.getUid());
-			 ResultSet rs = pstat.executeQuery();
+			conn = connect();
+			pstat = conn.prepareStatement(sql);
+			pstat.setInt(1, lib.getUid());
+			ResultSet rs = pstat.executeQuery();
 
-				while (rs.next()) {
-					lib.setBilldate(rs.getString("InvoiceDate"));
-					lib.setBillno(rs.getInt("Id"));
-					lib.setCheckindate(rs.getString("Checkin_date"));
-					lib.setCheckoutdate(rs.getString("Checkout_date"));
-					lib.setName(rs.getString("guestName"));
-				}		
-							
-		}catch (Exception ex) {
+			while (rs.next()) {
+				lib.setBilldate(rs.getString("InvoiceDate"));
+				lib.setBillno(rs.getInt("Id"));
+				lib.setCheckindate(rs.getString("Checkin_date"));
+				lib.setCheckoutdate(rs.getString("Checkout_date"));
+				lib.setName(rs.getString("guestName"));
+			}
+
+		} catch (Exception ex) {
 			System.out.println("Error" + ex.getMessage());
 		}
-		return lib ;
+		return lib;
 	}
+
 	public ArrayList receiptdata2(ReceiptLib2 lib) {
-		String query = "select * from Invoice i inner join InvoiceDetail id on i.DetailId = id.detailID inner join booking b on i.bookingid = b.Booking_ID where Uid = ? ";
+		//displaying the invoice, invoice detail as well as booking for receipt according to uid and status
+		String query = "select * from Invoice i inner join InvoiceDetail id on i.DetailId = id.detailID inner join booking b on i.bookingid = b.Booking_ID where Uid = ? and i.Status = 'unpaid'";
 		Connection conn;
 		PreparedStatement pstat;
 
@@ -928,11 +1059,11 @@ public class JDBC extends Connector {
 		try {
 			conn = connect();
 			pstat = conn.prepareStatement(query);
-			 pstat.setInt(1, lib.getUid());
+			pstat.setInt(1, lib.getUid());
 			ResultSet rs = pstat.executeQuery();
 			while (rs.next()) {
-				ReceiptLib2 lib1 = new ReceiptLib2(rs.getInt("Id"),rs.getInt("Booking_ID")
-						,rs.getString("ItemName"),rs.getString("ItemQuantity"),rs.getString("Total") );				
+				ReceiptLib2 lib1 = new ReceiptLib2(rs.getInt("Id"), rs.getInt("Booking_ID"), rs.getString("ItemName"),
+						rs.getString("ItemQuantity"), rs.getString("Total"));
 				search.add(lib1);
 			}
 			conn.close();
@@ -941,7 +1072,9 @@ public class JDBC extends Connector {
 		}
 		return search;
 	}
+
 	public ArrayList billtable(Billdata lib) {
+		//fetching data of booking, menu and service 
 		String query = " select * from booking left join services on services.serviceId = booking.serviceId left join menu on menu.menuId = booking.menuid ";
 		Connection conn;
 		PreparedStatement pstat;
@@ -950,11 +1083,12 @@ public class JDBC extends Connector {
 		try {
 			conn = connect();
 			pstat = conn.prepareStatement(query);
-			
+
 			ResultSet rs = pstat.executeQuery();
 			while (rs.next()) {
-				Billdata bill = new Billdata(rs.getInt("Booking_ID"), rs.getString("Quantity"),rs.getString("Item"),
-						rs.getString("name"),rs.getInt("roomId"),  rs.getString("Date"));
+				Billdata bill = new Billdata(rs.getInt("Booking_ID"), rs.getInt("Uid"), rs.getString("Quantity"),
+						rs.getString("menu.Quantity"), rs.getString("Menu.Item"), rs.getString("services.Item"), rs.getInt("roomId"),
+						rs.getString("Date"));
 
 				search.add(bill);
 			}
@@ -963,5 +1097,29 @@ public class JDBC extends Connector {
 			System.out.println(ex.getMessage());
 		}
 		return search;
+	}
+
+	public boolean invoicestatus(ReceiptLib2 inse) {
+		// changing invoice status depending on uid
+		boolean result = false;
+		Connection conn;
+		String sql = " UPDATE Invoice INNER JOIN booking ON Invoice.bookingid = booking.Booking_ID SET Status = 'paid' WHERE uid = ? ";
+		PreparedStatement pstat;
+		try {
+			// sending data from textfield to sql
+			conn = connect();
+			pstat = conn.prepareStatement(sql);
+			pstat.setInt(1, inse.getUid());
+			pstat.executeUpdate();
+			pstat.close();
+			conn.close();
+			result = true;
+			JOptionPane.showMessageDialog(btn, " payment made successfully!!");
+		} catch (Exception ex) {
+			JOptionPane.showMessageDialog(btn, "please try again!!");
+			System.out.println("Error :" + ex.getMessage());
+		}
+		return result;
+
 	}
 }

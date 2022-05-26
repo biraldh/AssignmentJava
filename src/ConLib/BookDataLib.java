@@ -1,32 +1,44 @@
 package ConLib;
 
 public class BookDataLib {
+		String name;
 	 	String Checkin_date;
 	    String Checkout_date;
 	    String Booking_status;
 	    String Preference;
 	    int Uid;
 	    int bookid;
+	    int roomno;
 		
-		public BookDataLib(String checkin_date, String checkout_date, String booking_status, String preference, int uid,
-				int bookid) {
-			super();
+		public BookDataLib(String Name, String checkin_date, String checkout_date, String booking_status, String preference, int uid,
+				int bookid, int Roomno) {
+			name = Name;
 			Checkin_date = checkin_date;
 			Checkout_date = checkout_date;
 			Booking_status = booking_status;
 			Preference = preference;
 			Uid = uid;
 			this.bookid = bookid;
+			roomno =Roomno;
 		}
 
 		public BookDataLib() {
-			
+			name = "";
 			Checkin_date = "";
 			Checkout_date = "";
 			Booking_status = "";
 			Preference = "";
 			Uid = 0;
 			bookid = 0;
+			roomno = 0;
+		}
+		
+		public String getName() {
+			return name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
 		}
 
 		public String getCheckin_date() {
@@ -75,6 +87,14 @@ public class BookDataLib {
 
 		public void setBookid(int bookid) {
 			this.bookid = bookid;
+		}
+
+		public int getRoomno() {
+			return roomno;
+		}
+
+		public void setRoomno(int roomno) {
+			this.roomno = roomno;
 		}
 	    
 	    

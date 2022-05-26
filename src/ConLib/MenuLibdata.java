@@ -3,6 +3,7 @@ package ConLib;
 public class MenuLibdata {
 	int uid;
 	int menuid;
+	String name;
 	String item;
 	String statu;
 	String quantity;
@@ -16,10 +17,11 @@ public class MenuLibdata {
 		this.quantity = "";
 		this.date = "";
 	}
-	public MenuLibdata(int uid, int menuid, String item, String statu, String quantity, String date) {
+	public MenuLibdata(int uid, int menuid,String Name, String item, String statu, String quantity, String date) {
 		
 		this.uid = uid;
 		this.menuid = menuid;
+		this.name = Name;
 		this.item = item;
 		this.statu = statu;
 		this.quantity = quantity;
@@ -36,6 +38,13 @@ public class MenuLibdata {
 	}
 	public void setMenuid(int menuid) {
 		this.menuid = menuid;
+	}
+	
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
 	}
 	public String getItem() {
 		return item;

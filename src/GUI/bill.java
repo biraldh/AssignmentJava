@@ -15,6 +15,7 @@ import java.util.Date;
 import java.util.Random;
 
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -30,14 +31,17 @@ import com.toedter.calendar.JDateChooser;
 import ConLib.BillLib;
 import ConLib.Billdata;
 import ConLib.JDBC;
-import ConLib.ReceiptLib2;
+
 
 public class bill {
 	JFrame frame;
+	JTextField txtBid, txtitem, txtQuantity;
+	DefaultTableModel model;
+	JTable table;
 
 	public bill() {
 		frame = new JFrame();
-		frame.setSize(1100, 600);
+		frame.setSize(1297, 600);
 		frame.setLocationRelativeTo(null);
 		frame.setTitle("Bill");
 		frame.setLayout(new BorderLayout());
@@ -52,12 +56,12 @@ public class bill {
 		JLabel lbltitle = new JLabel("LUTON HOTEL");
 		lbltitle.setFont(new Font("Berlin Sans FB Demi", Font.PLAIN, 30));
 		lbltitle.setForeground(Color.black);
-		lbltitle.setBounds(430, 15, 250, 30);
+		lbltitle.setBounds(570, 15, 250, 30);
 
 		north.add(lbltitle);
 
 		JButton backbtn = new JButton("Back");
-		backbtn.setBounds(850, 20, 100, 30);
+		backbtn.setBounds(1150, 20, 100, 30);
 		backbtn.setFocusable(false);
 		backbtn.setBackground(new Color(196, 195, 135));
 		backbtn.setFont(new Font("Times New Roman", Font.PLAIN, 14));
@@ -92,23 +96,19 @@ public class bill {
 		west.add(s1);
 
 		JLabel lblBid = new JLabel("Booking ID : ");
-		// lblBid.setFont(new Font("Times New Roman", Font.PLAIN, 15));
-		// lblBid.setForeground(Color.WHITE);
 		lblBid.setBounds(30, 60, 80, 25);
 		west.add(lblBid);
 
-		JTextField txtBid = new JTextField();
+		txtBid = new JTextField();
 		txtBid.setFont(new Font("Times  New Roman", Font.PLAIN, 14));
 		txtBid.setBounds(110, 60, 200, 25);
 		west.add(txtBid);
 
 		JLabel lblitem = new JLabel("Item : ");
-		// lblname.setFont(new Font("Times New Roman", Font.PLAIN, 15));
-		// lblname.setForeground(Color.WHITE);
 		lblitem.setBounds(30, 100, 90, 20);
 		west.add(lblitem);
 
-		JTextField txtitem = new JTextField();
+		txtitem = new JTextField();
 		txtitem.setFont(new Font("Times  New Roman", Font.PLAIN, 14));
 		txtitem.setBounds(110, 100, 200, 25);
 		west.add(txtitem);
@@ -119,7 +119,7 @@ public class bill {
 		lblquantity.setBounds(30, 140, 80, 20);
 		west.add(lblquantity);
 
-		JTextField txtQuantity = new JTextField();
+		txtQuantity = new JTextField();
 		txtQuantity.setFont(new Font("Times  New Roman", Font.PLAIN, 14));
 		txtQuantity.setBounds(110, 140, 200, 25);
 		west.add(txtQuantity);
@@ -130,10 +130,11 @@ public class bill {
 		lblBstatus.setBounds(30, 180, 80, 20);
 		west.add(lblBstatus);
 
-		JTextField txtBstatus = new JTextField();
-		txtBstatus.setFont(new Font("Times  New Roman", Font.PLAIN, 14));
-		txtBstatus.setBounds(110, 180, 200, 25);
-		west.add(txtBstatus);
+		String[] pay = {"unpaid","paid"};
+		JComboBox ComBstatus = new JComboBox(pay);
+		ComBstatus.setFont(new Font("Times  New Roman", Font.PLAIN, 14));
+		ComBstatus.setBounds(110, 180, 200, 25);
+		west.add(ComBstatus);
 
 		JLabel lblBdate = new JLabel("Date: ");
 		// lblBdate.setFont(new Font("Times New Roman", Font.PLAIN, 15));
@@ -143,7 +144,7 @@ public class bill {
 
 		JDateChooser cdate = new JDateChooser();
 		cdate.setFont(new Font("Times New Roman", Font.BOLD, 14));
-		cdate.setDateFormatString("yyyy-mm-dd");
+		cdate.setDateFormatString("yyyy-MM-dd");
 		cdate.setBounds(110, 220, 200, 25);
 		west.add(cdate);
 
@@ -157,7 +158,7 @@ public class bill {
 		txttotal.setFont(new Font("Times  New Roman", Font.PLAIN, 15));
 		txttotal.setBounds(110, 300, 200, 25);
 		west.add(txttotal);
-		
+
 		JLabel lblRate = new JLabel("Rate : ");
 		// lblroomNo.setFont(new Font("Times New Roman", Font.PLAIN, 15));
 		// lblroomNo.setForeground(Color.WHITE);
@@ -172,44 +173,41 @@ public class bill {
 
 			@Override
 			public void keyTyped(KeyEvent e) {
-				
-				
+
 			}
 
 			@Override
 			public void keyPressed(KeyEvent e) {
 				// TODO Auto-generated method stub
-				
+
 			}
 
 			@Override
 			public void keyReleased(KeyEvent e) {
-				// TODO Auto-generated method stub
+				
+				//initialize and declare variables
 				float rato = Integer.parseInt(txtRate.getText());
+				float quantity = Integer.parseInt(txtQuantity.getText());
 				float v = 13;
 				float v1 = 100;
-				float rateno= (float) (v/v1 * rato);
-				System.out.println(rateno);
-				int total = (int) (rato +rateno); 
-				txttotal.setText(Integer.toString(total));
+				int total1 = (int) (rato * quantity);
+				float rateno = (float) (v / v1 * total1);//calculate vat
 				
-					
-		}});
+				System.out.println(rateno);
+				
+				int total = (int) (total1 + rateno);//calculating total
+				txttotal.setText(Integer.toString(total));
+
+			}
+		});
 
 		JLabel lblVat = new JLabel("Vat Charged on all items : ");
-		// lblcheckin.setFont(new Font("Times New Roman", Font.PLAIN, 15));
-		// lblcheckin.setForeground(Color.WHITE);
 		lblVat.setBounds(20, 450, 150, 20);
 		west.add(lblVat);
 
 		JLabel lblVat1 = new JLabel("13%");
-		// lblcheckin.setFont(new Font("Times New Roman", Font.PLAIN, 15));
-		// lblcheckin.setForeground(Color.WHITE);
 		lblVat1.setBounds(180, 450, 200, 25);
 		west.add(lblVat1);
-	
-	
-		
 
 		JButton btnInsert = new JButton("Insert");
 		btnInsert.setFont(new Font("Times New Roman", Font.PLAIN, 15));
@@ -226,7 +224,8 @@ public class bill {
 				// generate random values from 0-99
 				int randomno = rand.nextInt(upperbound);
 				int detailid = bokid + randomno;
-				String status = txtBstatus.getText();
+				//declare and initialize variables
+				String status = ComBstatus.getSelectedItem().toString();
 				String rate1 = txtRate.getText();
 				String quantity = txtQuantity.getText();
 				String total = txttotal.getText();
@@ -234,10 +233,11 @@ public class bill {
 				String item = txtitem.getText();
 				String date = ((JTextField) cdate.getDateEditor().getUiComponent()).getText();
 				try {
-					Date date1 = new SimpleDateFormat("yyyy/MM/dd").parse(date);
+					Date date1 = new SimpleDateFormat("yyyy-MM-dd").parse(date);
 				} catch (ParseException e1) {
 
 				}
+				//sending the variable values to middleware
 				JDBC jdbc = new JDBC();
 				BillLib lib = new BillLib(bokid, detailid, item, quantity, rate1, date, status, vat, total);
 				jdbc.detailstaf(lib);
@@ -258,7 +258,7 @@ public class bill {
 			public void actionPerformed(ActionEvent ex) {
 				txtBid.setText(null);
 				lblquantity.setText(null);
-				txtBstatus.setText(null);
+				ComBstatus.setSelectedItem(null);
 				txtitem.setText(null);
 				cdate.setCalendar(null);
 				txtRate.setText(null);
@@ -284,29 +284,46 @@ public class bill {
 		center.setLayout(null);
 		center.setBackground(new Color(0, 0, 0));
 		frame.add(center, BorderLayout.CENTER);
-		
-		DefaultTableModel model = new DefaultTableModel();
+
+		model = new DefaultTableModel();
 		model.addColumn("BookingID");
+		model.addColumn("userID");
 		model.addColumn("RoomNo");
 		model.addColumn("Services");
 		model.addColumn("Menu");
-		model.addColumn("Quantity");
+		model.addColumn("Service Qty");
+		model.addColumn("Menu Qty");
 		model.addColumn("Date");
-		
-		JTable table = new JTable(model);
-		
-		JDBC jdbc1 = new JDBC();
-		Billdata billl = new Billdata();
-		ArrayList search = jdbc1.billtable(billl);
-		if (search.size() > 0) {
-			for (int i = 0; i < search.size(); i++) {
-				billl = (Billdata) search.get(i);				
-				Object[] tmp = {  billl.getBookingid(), billl.getRoom(), billl.getService(),billl.getMenu(),billl.getQuantity(),billl.getDate(),};
-				model.addRow(tmp);
-			}}
 
-	
-		JTableHeader h1 = table.getTableHeader();		
+		table = new JTable(model);
+		
+
+		JButton btnsearch = new JButton("display");
+		btnsearch.setFont(new Font("Times New Roman", Font.PLAIN, 15));
+		btnsearch.setForeground(Color.WHITE);
+		btnsearch.setBackground(new Color(106, 101, 101));
+		btnsearch.setBounds(1, 1, 100, 30);
+		btnsearch.setFocusable(false);
+		center.add(btnsearch);
+		btnsearch.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ex) {
+				model.setRowCount(0);//deleting all the rows of table
+				//retriving data from middleware
+				JDBC jdbc1 = new JDBC();
+				Billdata billl = new Billdata();
+				ArrayList search = jdbc1.billtable(billl);
+				if (search.size() > 0) {
+					for (int i = 0; i < search.size(); i++) {
+						billl = (Billdata) search.get(i);
+						Object[] tmp = { billl.getBookingid(), billl.getUid(), billl.getRoom(), billl.getService(),
+								billl.getMenu(), billl.getQuantity(), billl.getQuantity2(), billl.getDate(), };
+						model.addRow(tmp);//setting the retrieved data into the table
+					}
+				}
+			}
+		});
+
+		JTableHeader h1 = table.getTableHeader();
 		h1.setFont(new Font("Verdana", Font.BOLD, 14));
 		h1.setBackground(Color.black);
 		h1.setForeground(Color.white);
@@ -315,7 +332,7 @@ public class bill {
 		center.add(table);
 
 		JScrollPane scroll = new JScrollPane(table);
-		scroll.setBounds(2, 2, 724, 498);
+		scroll.setBounds(2, 30, 920, 498);
 		center.add(scroll);
 
 		frame.setResizable(false);
@@ -325,5 +342,7 @@ public class bill {
 	public static void main(String[] args) {
 		new bill();
 	}
+
+
 
 }

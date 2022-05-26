@@ -140,7 +140,7 @@ public class stafreg {
 					btnReg1.setForeground(Color.black);
 					btnReg1.addActionListener(new ActionListener() {
 						public void actionPerformed(ActionEvent ex) {
-							
+							//initialize and declare variables
 							String name = txtNam1.getText();
 							String address = txtAdd1.getText();
 							String gender = cGender1.getSelectedItem().toString();
@@ -204,7 +204,7 @@ public class stafreg {
 					btnBack1.setForeground(Color.black);
 					btnBack1.addActionListener(new ActionListener() {
 						
-
+						//opens new class WelcomePage
 						public void actionPerformed(ActionEvent ex) {
 							new WelcomePage().setVisible(true);
 							frame1.dispose();
@@ -219,6 +219,7 @@ public class stafreg {
 					btnclear1.setBackground(new Color(106, 101, 101));
 					btnclear1.setForeground(Color.white);
 					btnclear1.addActionListener(new ActionListener() {
+						//clearing the textfield data
 						public void actionPerformed(ActionEvent ex) {
 							txtNam1.setText(null);
 							txtAdd1.setText(null);

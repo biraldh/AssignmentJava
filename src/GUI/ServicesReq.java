@@ -6,8 +6,11 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Random;
 
@@ -17,22 +20,30 @@ import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
+import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.table.DefaultTableModel;
 
 import com.toedter.calendar.JDateChooser;
 
+import ConLib.BookDataLib;
 import ConLib.JDBC;
 import ConLib.LibServiceReq;
 import ConLib.ServiceLib;
+import ConLib.ServiceLibdata;
 
-public class ServicesReq {
+public class ServicesReq implements MouseListener {
 	JFrame frame;
 	JComboBox comboBox;
+	DefaultTableModel model;
+	JTable tableService;
+	int serviceID;
 
 	public ServicesReq() {
 		frame = new JFrame();
-		frame.setSize(450, 600);
+		frame.setSize(1100, 600);
 		frame.setLocationRelativeTo(null);
 		frame.getContentPane().setLayout(new BorderLayout());
 
@@ -41,6 +52,8 @@ public class ServicesReq {
 		north.setLayout(null);
 		north.setBackground(new Color(150, 255, 255));
 		frame.getContentPane().add(north, BorderLayout.NORTH);
+		
+		
 
 		JLabel lbltitle = new JLabel("Luton Hotel");
 		lbltitle.setFont(new Font("Times New Roman", Font.BOLD, 24));
@@ -77,7 +90,6 @@ public class ServicesReq {
 		west.add(lblUser_id);
 
 		
-		//String uid = Integer.toString(Global.loginCred.getId());
 		JLabel lblUser_id1 = new JLabel();
 		lblUser_id1.setFont(new Font("Times New Roman", Font.PLAIN, 14));
 		lblUser_id1.setForeground(Color.DARK_GRAY);
@@ -90,13 +102,12 @@ public class ServicesReq {
 		lblName.setBounds(50, 100, 100, 25);
 		west.add(lblName);
 
-		JTextField txtName = new JTextField();
+		String[] servic = {"car wash","parking","room cleaning"};
+		JComboBox txtName = new JComboBox(servic);
 		txtName.setFont(new Font("Times New Roman", Font.PLAIN, 14));
 		txtName.setForeground(Color.black);
 		txtName.setBounds(150, 100, 200, 25);
 		west.add(txtName);
-
-
 
 		JLabel lblDate = new JLabel("Date : ");
 		lblDate.setFont(new Font("Times New Roman", Font.PLAIN, 14));
@@ -132,18 +143,14 @@ public class ServicesReq {
 		west.add(updatebtn);
 		updatebtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ex) {
+				//intialize and declare variables
 				 int userid =  Global.loginCred.getId();	
-				 String service = txtName.getText();
+				 String service = txtName.getSelectedItem().toString();
 				 String date = ((JTextField) c1.getDateEditor().getUiComponent()).getText();
                  String  quantity = txtQuantity.getText();
-				 
-				 JDBC jdbc1 = new JDBC();
-				 LibServiceReq lib1 = new LibServiceReq();
-				 lib1.setUId(userid);
-				 lib1.setService(service);
-				 LibServiceReq result1 = jdbc1.serviceId(lib1);
-				 int serviceid = lib1.getServiceid();
-				 
+				 //sending variables data to middleware
+				 JDBC jdbc1 = new JDBC();			
+				 System.out.println(service);
 				
 				 
 					try {
@@ -154,7 +161,7 @@ public class ServicesReq {
 			
 				 		 
 				 JDBC jdbc = new JDBC();			 
-				 LibServiceReq lib = new LibServiceReq( userid, service,  date, quantity,serviceid);
+				 LibServiceReq lib = new LibServiceReq( userid, service,  date, quantity,serviceID);
 				 boolean result = jdbc.requpdateService(lib);
 				 
 				 
@@ -171,13 +178,13 @@ public class ServicesReq {
 		west.add(Deletebtn);
 		Deletebtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ex) {
+				//getting uid data from global class
 				 int userid =  Global.loginCred.getId();
-				 String service = txtName.getText();
+				 //sending uid to middleware
 				 JDBC jdbc1 = new JDBC();
 				 LibServiceReq lib1 = new LibServiceReq();
 				 lib1.setUId(userid);
-				 lib1.setService(service);
-				 LibServiceReq result = jdbc1.serviceId(lib1);
+				 lib1.setServiceid(serviceID);
 				 boolean result1 = jdbc1.deleteServiceinbook(lib1);
 				 boolean result2 = jdbc1.deleteService(lib1);
 				 
@@ -193,9 +200,10 @@ public class ServicesReq {
 		west.add(Confirmbtn);
 		Confirmbtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ex) {
+				//getting uid data from global class
 				 int userid = Global.loginCred.getId();
-				 
-				 String service = txtName.getText();
+				 //intialize and declare variables
+				 String service = txtName.getSelectedItem().toString();
 				 String date = ((JTextField) c1.getDateEditor().getUiComponent()).getText();
 				 String  quantity = txtQuantity.getText();
 				
@@ -210,6 +218,7 @@ public class ServicesReq {
 				        //generate random values from 0-99
 				      int randomno = rand.nextInt(upperbound);
 				 int serviceid = userid*randomno; 
+				//sending data to middleware
 				 JDBC jdbc = new JDBC();
 				LibServiceReq lib = new LibServiceReq( userid, service,  date, quantity,serviceid);
 				 boolean result = jdbc.ReqService(lib);
@@ -228,6 +237,58 @@ public class ServicesReq {
 		lbllink.setBounds(160, 480, 200, 20);
 		west.add(lbllink);
 		
+		JPanel center = new JPanel();
+		center.setSize(1000,600);
+		//north.setPreferredSize(new Dimension(1, 60));
+		center.setLayout(null);
+		center.setBackground(new Color(100, 100, 133));
+		frame.getContentPane().add(center, BorderLayout.CENTER);
+		
+		model = new DefaultTableModel();
+		model.addColumn("Customer ID");
+		model.addColumn("Service ID");
+		model.addColumn("Service");
+		model.addColumn("Service Status");
+		model.addColumn("Quantity");
+		model.addColumn("Date");
+		
+		tableService = new JTable(model);
+		tableService.addMouseListener(this);
+		
+		
+
+		JButton btnsearch = new JButton("Display");
+		btnsearch.setBounds(10, 20, 100, 25);
+		btnsearch.setFocusable(false);
+		btnsearch.setBackground(new Color(106, 101, 101));
+		btnsearch.setFont(new Font("Times New Roman", Font.BOLD, 18));
+		btnsearch.setForeground(Color.white);
+		center.add(btnsearch);
+		btnsearch.addActionListener(new ActionListener() {
+			
+			public void actionPerformed(ActionEvent ex) {
+				model.setRowCount(0);//counting rows
+				JDBC jdbc = new JDBC();
+				int id = Global.loginCred.getId();//getting uid from global class
+				ServiceLibdata servic = new ServiceLibdata();
+				servic.setUid(id);				
+				ArrayList search = jdbc.servicview(servic);//sending uid to middleware 
+				if (search.size() > 0) {
+					for (int i = 0; i < search.size(); i++) {//counting the size of arraylist
+						servic = (ServiceLibdata) search.get(i);//Retrieving the data 
+						Object[] tmp = { servic.getUid(),servic.getServiceId(),servic.getItem(),servic.getStatus(),servic.getQuantity(),servic.getDate() };
+						model.addRow(tmp);//placing the retrieved data in a table
+
+					}
+				}
+			}
+		});
+		
+	
+		JScrollPane sroll = new JScrollPane(tableService);
+		sroll.setBounds(20, 50, 600, 400);
+		center.add(sroll);
+		
 		frame.setResizable(false);
 		frame.setVisible(true);
 
@@ -235,6 +296,37 @@ public class ServicesReq {
 
 	public static void main(String[] args) {
 		new ServicesReq();
+	}
+
+	@Override
+	public void mouseClicked(MouseEvent e) {
+		int rows = tableService.getSelectedRow();
+		String serviceid = model.getValueAt(rows, 1).toString();
+		serviceID = Integer.parseInt(serviceid);
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }
